@@ -42,6 +42,14 @@ class TeXParser {
         .flatten()
         .map(num.parse);
 
+    final signedNumber = (pattern('+-').optional() &
+            ((integer | char('.').and()) &
+                    (char('.') & integer).pick(1).optional() &
+                    (char('E') & pattern('+-').optional() & integer).optional())
+                .flatten())
+        .flatten()
+        .map(num.parse);
+
     final pi = (string('{') & string(r'\pi') & string('}')).map((a) => math.pi);
     final e = (string('{') & string('e') & string('}')).map((a) => math.e);
     final variable =
@@ -49,19 +57,19 @@ class TeXParser {
 
     final basic = (number | pi | e | variable).map((v) => [v, 'b']);
 
-    // Coordinate pair pattern: (number{,}number) or (variable{,}variable) etc.
-    // Also handles raw commas: (number,number) or (variable,variable)
+    // Coordinate pair pattern: (signedNumber{,}signedNumber) or (variable{,}variable) etc.
+    // Also handles raw commas: (signedNumber,signedNumber) or (variable,variable)
     final coordinatePairWithBraces = (string('(') &
-            (number | variable | letter().plus().flatten()) &
+            (signedNumber | variable | letter().plus().flatten()) &
             string('{,}') &
-            (number | variable | letter().plus().flatten()) &
+            (signedNumber | variable | letter().plus().flatten()) &
             string(')'))
         .map((v) => [v.join(''), 'c']);
 
     final coordinatePairWithComma = (string('(') &
-            (number | variable | letter().plus().flatten()) &
+            (signedNumber | variable | letter().plus().flatten()) &
             char(',') &
-            (number | variable | letter().plus().flatten()) &
+            (signedNumber | variable | letter().plus().flatten()) &
             string(')'))
         .map((v) => [v.join(''), 'c']);
 
